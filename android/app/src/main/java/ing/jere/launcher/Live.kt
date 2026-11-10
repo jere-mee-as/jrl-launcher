@@ -14,7 +14,7 @@ import java.net.URL
  */
 object Live {
 
-    const val SRC = "https://jere.ing/launcher/app/index.html"
+    const val SRC = "https://raw.githubusercontent.com/jere-mee-as/jrl-launcher/main/android/app/src/main/assets/www/index.html"
 
     const val UPDATED = "updated"
     const val SAME = "same"

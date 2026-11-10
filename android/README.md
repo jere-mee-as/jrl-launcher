@@ -15,7 +15,7 @@ the 0.1.2 bridge contract method-for-method, so older pages keep working.
 | Version | 0.3.1 (versionCode 4) |
 | SDK | min 26, target/compile 35 |
 | Toolchain | AGP 8.7.3, Kotlin 2.0.21, Gradle 8.10.2 (wrapper), JDK 17 |
-| OTA page source | `https://jere.ing/launcher/app/index.html` |
+| OTA page source | `https://raw.githubusercontent.com/jere-mee-as/jrl-launcher/main/android/app/src/main/assets/www/index.html` |
 
 ## Layout
 
@@ -30,7 +30,6 @@ app/src/main/java/ing/jere/launcher/
 app/src/main/assets/www/
   index.html        the bundled page (v4.0 preview)
   fonts/            Archivo, Doto, JetBrains Mono (+ LICENSES.md, OFL.txt)
-ci/launcher-apk.yml GitHub Actions workflow (copy to .github/workflows/)
 ```
 
 The page is served from `https://appassets.androidplatform.net/` through `WebViewAssetLoader`:
@@ -45,14 +44,13 @@ Links to any other host open in the browser / handling app, not in the WebView.
 
 ### GitHub Actions (no local setup)
 
-1. Copy `ci/launcher-apk.yml` to `.github/workflows/launcher-apk.yml` in the repo. It expects this project
-   at `launcher/android/`.
-2. Add repo secrets: `JRL_KEYSTORE_B64` (the release keystore, base64: `base64 -w0 jrl.jks`),
-   `JRL_KEYSTORE_PASSWORD`, `JRL_KEY_ALIAS`, `JRL_KEY_PASSWORD`. Without them the build still runs and the
-   APK is debug-signed (fine for a test, but every CI run then has a different debug key, so updates won't
-   install over each other).
-3. Actions → **Launcher APK** → **Run workflow**. It runs only when you press the button.
-4. Download the `jrl-launcher-apk` artifact from the run (a zip with `app-release.apk`).
+1. Repo secrets (Settings → Secrets and variables → Actions): `JRL_KEYSTORE_B64` (the release keystore, base64:
+   `base64 -w0 jrl.jks`), `JRL_KEYSTORE_PASSWORD`, `JRL_KEY_ALIAS`, `JRL_KEY_PASSWORD`. Without them the build
+   still runs and the APK is debug-signed (fine for a test, but every run then has a different key, so updates
+   won't install over each other).
+2. Actions → **Release APK** → **Run workflow** (`.github/workflows/release.yml`). It runs only when you press it.
+3. It publishes release `v<versionName>` with `jrl-launcher.apk`; running it again for the same version replaces
+   the APK. The newest is always at `releases/latest/download/jrl-launcher.apk`.
 
 ### Android Studio
 
@@ -141,7 +139,7 @@ Inset sizes go to the page as CSS variables on `<html>`: `--sat`, `--sar`, `--sa
 
 ## OTA page updates
 
-- Source: `https://jere.ing/launcher/app/index.html` (fetched with `?t=<now>`, User-Agent `jrl-launcher`,
+- Source: `https://raw.githubusercontent.com/jere-mee-as/jrl-launcher/main/android/app/src/main/assets/www/index.html` (fetched with `?t=<now>`, User-Agent `jrl-launcher`,
   8 s connect / 15 s read timeout).
 - Checked on resume at most every 30 minutes, or immediately through `update()`.
 - Accepted only if HTTP 200, at least 20,000 bytes, and the text contains `JRLnative`. If it differs from
