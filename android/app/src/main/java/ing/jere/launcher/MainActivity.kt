@@ -140,11 +140,13 @@ class MainActivity : ComponentActivity() {
 
     /**
      * The page draws edge to edge. System bar / cutout sizes go to the page as CSS variables
-     * (--sat, --sar, --sab, --sal, in dp); the keyboard is handled natively by lifting the WebView.
+     * (--sat, --sar, --sab, --sal, plus --sgb for the bottom gesture zone, in dp); the keyboard is handled natively by lifting the WebView.
      */
     private fun applyInsets(insets: WindowInsetsCompat): WindowInsetsCompat {
         val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
         val imeBottom = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
+        // The home swipe reacts above the visible gesture bar; the page keeps its controls out of that zone.
+        val gestBottom = insets.getInsets(WindowInsetsCompat.Type.mandatorySystemGestures()).bottom
 
         val lp = web.layoutParams as FrameLayout.LayoutParams
         if (lp.bottomMargin != imeBottom) {
@@ -158,6 +160,7 @@ class MainActivity : ComponentActivity() {
             "s.setProperty('--sat','${bars.top / d}px');" +
             "s.setProperty('--sar','${bars.right / d}px');" +
             "s.setProperty('--sab','${bottom}px');" +
+            "s.setProperty('--sgb','${if (imeBottom > 0) 0f else gestBottom / d}px');" +
             "s.setProperty('--sal','${bars.left / d}px')" +
             "})(document.documentElement.style)"
         if (pageReady) web.evaluateJavascript(insetJs, null)

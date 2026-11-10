@@ -20,7 +20,7 @@
   --dim:color-mix(in srgb,var(--ink) 60%,transparent);--rule:var(--rule-c);
   --cdim:color-mix(in srgb,var(--card-ink) 58%,transparent);--crule:color-mix(in srgb,var(--card-ink) 18%,transparent);
   --sdim:color-mix(in srgb,var(--slab-ink) 58%,transparent);--srule:color-mix(in srgb,var(--slab-ink) 16%,transparent);
-  --pt:calc(30px + var(--sat,env(safe-area-inset-top,0px)));--pb:calc(58px + var(--sab,env(safe-area-inset-bottom,0px)));
+  --pt:calc(30px + var(--sat,env(safe-area-inset-top,0px)));--gz:calc(max(var(--sab,env(safe-area-inset-bottom,0px)), var(--sgb,0px), 16px) + 14px);--pb:calc(58px + var(--gz));
   color-scheme:light;
 }
 *{box-sizing:border-box}
@@ -102,7 +102,7 @@ html[data-snd="on"] .sndc .lbl{color:var(--w)}
 .status::before{content:"\25A0  ";animation:blink .5s steps(1) infinite}
 
 /* prompt bar: carbon. the terminal prompt + the A–Z launch ruler, and the room's gesture prompts */
-.bstrip{position:relative;z-index:30;display:flex;align-items:center;gap:6px;height:var(--pb);padding:0 6px var(--sab,env(safe-area-inset-bottom,0px));background:var(--k);color:var(--w);white-space:nowrap;min-width:0;border-top:1px solid #1c1d1e}
+.bstrip{position:relative;z-index:30;display:flex;align-items:center;gap:6px;height:var(--pb);padding:0 6px var(--gz);background:var(--k);color:var(--w);white-space:nowrap;min-width:0;border-top:1px solid #1c1d1e}
 .bs-l{display:none}
 .bs-prompt{flex:1;min-width:0;height:48px;display:flex;flex-direction:column;justify-content:space-between;padding:7px 8px 4px 8px;background:#151517;color:var(--w);font:400 12px/1 var(--mono);cursor:pointer;touch-action:none}
 .bs-l1{display:flex;align-items:center;gap:7px;min-width:0;overflow:hidden}
@@ -113,7 +113,7 @@ html[data-snd="on"] .sndc .lbl{color:var(--w)}
 .ruler b{flex:1;min-width:0;text-align:center;padding:1px 0}
 .ruler b.dis{opacity:.3}
 .ruler b.on{background:var(--sig);color:var(--on-sig);opacity:1}
-.prompts{position:absolute;right:6px;top:5px;bottom:calc(5px + var(--sab,env(safe-area-inset-bottom,0px)));z-index:2;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:0 10px;background:var(--k)}
+.prompts{position:absolute;right:6px;top:5px;bottom:calc(5px + var(--gz));z-index:2;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:0 10px;background:var(--k)}
 .pr{display:flex;align-items:center;gap:6px;font:600 9px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:#d7d7d2}
 .kc{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 4px;border-radius:50%;background:var(--w);color:var(--k);font:700 9px/1 var(--kode);letter-spacing:0}
 .kc.sq{border-radius:2px}
@@ -2250,6 +2250,7 @@ html.inv #device{filter:invert(1)}
     let pd = null, suppress = false;
     const TAPPABLE = '.ins-pp,.mrow,.tile,.stk,.a-pg,.chip,.g-ev,.g-more,.c-row,.dos-cmd,.ins,.hl-tx,.np-ctl button,.s-ctl button,.a-hid-note';
     DEV.addEventListener('pointerdown', e => {
+      suppress = false; // a swipe never fires a click; a stale flag would eat the next tap
       if (e.button) return; const t = e.target.closest(TAPPABLE);
       pd = { x: e.clientX, y: e.clientY, t: Date.now(), el: t, held: false, deck: e.target.closest('.deck'), main: !!e.target.closest('main'), ov: !!e.target.closest('#sheet,#folder,#cli,#term,#boot,#fakeapp,#scrubov,#lockscr') };
       if (t) t.classList.add('press');
@@ -2805,7 +2806,7 @@ html.inv #device{filter:invert(1)}
       if (pre === '~') { openRoot(); return; }
       if (!RT.el.hidden) return; JRL.close(true); term = U;
       if (U.el.hidden) { U.el.hidden = false; if (!reduce) { U.el.classList.remove('stepin'); void U.el.offsetWidth; U.el.classList.add('stepin'); } HAP('tick'); S.click(); R.dataset.term = 'on'; }
-      if (!greeted) { greeted = true; tline('<span class="tdim">tty1 // jere@jrl-h // type help. every tap types its command here.</span>'); }
+      if (!greeted) { greeted = true; tline('<span class="tdim">tty1 // jere@jrl-h // type help.</span>'); }
       U.inp.value = pre || ''; setTimeout(() => { U.inp.focus({ preventScroll: true }); try { U.inp.setSelectionRange(U.inp.value.length, U.inp.value.length); } catch (e) {} if (pre) U.inp.dispatchEvent(new Event('input')); U.out.scrollTop = U.out.scrollHeight; }, 30);
     }
     function close(quiet) { if (U.el.hidden) return; U.el.hidden = true; delete R.dataset.term; U.inp.blur(); if (JRL.top && JRL.top()) JRL.filter(''); if (!quiet) { HAP('tick'); S.click(); } }
@@ -2813,7 +2814,7 @@ html.inv #device{filter:invert(1)}
     window.JRLterm = {
       open: open, close: close, toggle: () => U.el.hidden ? open('') : close(), isOpen: () => !U.el.hidden,
       run: v => { term = U; prompt(v); run(v); },
-      hist: cmd => { if (running || U.busy) return; const d = document.createElement('div'); d.className = 'tl'; d.innerHTML = '<span class="tdim">$ ' + esc(cmd) + '</span>'; U.out.appendChild(d); while (U.out.children.length > 400) U.out.firstChild.remove(); U.out.scrollTop = U.out.scrollHeight; }
+      hist: () => {} // taps type into the prompt bar only; the terminal shows what you typed in it
     };
 
     /* ---------- tty0: root, behind the invert sweep ---------- */
